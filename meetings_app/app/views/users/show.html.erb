@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="card">
+    <h1>Your Profile</h1>
+    <p class="subtitle">Account information</p>
+
+    <div style="margin-top: 1.5rem;">
+      <div style="display:flex;align-items:center;margin-bottom:2rem;">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:1.75rem;font-weight:700;margin-right:1rem;">
+          <%= current_user.name[0].upcase %>
+        </div>
+        <div>
+          <div style="font-size:1.2rem;font-weight:700;"><%= current_user.name %></div>
+          <div style="color:#6b7280;font-size:0.9rem;"><%= current_user.email %></div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid #f3f4f6;padding-top:1.5rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+          <div>
+            <div style="font-size:0.8rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Member since</div>
+            <div style="font-weight:600;margin-top:0.25rem;"><%= current_user.created_at.strftime("%B %d, %Y") %></div>
+          </div>
+          <div>
+            <div style="font-size:0.8rem;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Account ID</div>
+            <div style="font-weight:600;margin-top:0.25rem;">#<%= current_user.id %></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:2rem;">
+      <%= button_to "Log Out", logout_path, method: :delete, class: "btn", style: "background: linear-gradient(135deg, #ef4444, #dc2626);" %>
+    </div>
+  </div>
+</div>

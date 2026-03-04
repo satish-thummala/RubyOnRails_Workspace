@@ -1,0 +1,38 @@
+<div class="container wide" style="margin: 2rem auto;">
+  <div class="welcome-banner">
+    <h1>👋 Hello, <%= current_user.name %>!</h1>
+    <p>You're successfully logged in. Welcome to your dashboard.</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="stat-card">
+      <div class="icon">🔐</div>
+      <h3>Auth Status</h3>
+      <p style="color:#10b981;">Active</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="icon">📅</div>
+      <h3>Member Since</h3>
+      <p style="font-size:1rem;"><%= current_user.created_at.strftime("%b %Y") %></p>
+    </div>
+
+    <div class="stat-card">
+      <div class="icon">✉️</div>
+      <h3>Email</h3>
+      <p style="font-size:0.9rem;word-break:break-all;"><%= current_user.email %></p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:2rem;">
+    <h2 style="margin-bottom:0.75rem;">🛠 What's in this project?</h2>
+    <ul style="list-style:none;padding:0;line-height:2;">
+      <li>✅ User registration with validations</li>
+      <li>✅ Secure login / logout with <code>bcrypt</code></li>
+      <li>✅ Session-based authentication</li>
+      <li>✅ Protected routes via <code>before_action</code></li>
+      <li>✅ Flash messages for feedback</li>
+      <li>✅ Profile page with user info</li>
+    </ul>
+  </div>
+</div>
