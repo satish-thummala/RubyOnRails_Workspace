@@ -30,9 +30,25 @@ class ZoomMeetingsController < ApplicationController
   def create
     @meeting = current_user.zoom_meetings.build(meeting_params)
 
-    if @meeting.save
-      flash[:notice] = "✅ Meeting \"#{@meeting.topic}\" has been scheduled!"
-      redirect_to zoom_meetings_path
+    if @meeting.valid?
+      # Try to create meeting on Zoom first
+      zoom_result = create_zoom_meeting(@meeting)
+
+      if zoom_result[:success]
+        # Save with Zoom data populated
+        if @meeting.save
+          flash[:notice] = "✅ Meeting \"#{@meeting.topic}\" scheduled and created on Zoom!"
+          redirect_to zoom_meetings_path
+        else
+          flash[:alert] = "Meeting saved locally but had an issue: #{@meeting.errors.full_messages.join(', ')}"
+          redirect_to zoom_meetings_path
+        end
+      else
+        # Zoom API failed — still save locally, show warning
+        @meeting.save
+        flash[:alert] = "⚠️ Meeting saved locally but Zoom API failed: #{zoom_result[:error]}. Please check your Zoom credentials in config."
+        redirect_to zoom_meetings_path
+      end
     else
       render :new, status: :unprocessable_entity
     end
@@ -43,7 +59,17 @@ class ZoomMeetingsController < ApplicationController
 
   def update
     if @meeting.update(meeting_params)
-      flash[:notice] = "✅ Meeting updated successfully!"
+      # Sync update to Zoom if meeting has a Zoom ID
+      if @meeting.zoom_meeting_id.present?
+        sync_result = update_zoom_meeting(@meeting)
+        if sync_result[:success]
+          flash[:notice] = "✅ Meeting updated and synced to Zoom!"
+        else
+          flash[:notice] = "✅ Meeting updated locally. ⚠️ Zoom sync failed: #{sync_result[:error]}"
+        end
+      else
+        flash[:notice] = "✅ Meeting updated successfully!"
+      end
       redirect_to zoom_meetings_path
     else
       render :edit, status: :unprocessable_entity
@@ -51,6 +77,10 @@ class ZoomMeetingsController < ApplicationController
   end
 
   def destroy
+    # Delete from Zoom first if linked
+    if @meeting.zoom_meeting_id.present?
+      delete_zoom_meeting(@meeting.zoom_meeting_id)
+    end
     @meeting.destroy
     flash[:notice] = "🗑️ Meeting deleted."
     redirect_to zoom_meetings_path
@@ -63,6 +93,48 @@ class ZoomMeetingsController < ApplicationController
   end
 
   private
+
+  # ─── ZOOM API CALLS ──────────────────────────────────────────────────────────
+
+  def create_zoom_meeting(meeting)
+    service = ZoomApiService.new
+    response = service.create_meeting(meeting)
+
+    # Populate meeting with Zoom response data
+    meeting.zoom_meeting_id = response["id"].to_s
+    meeting.zoom_uuid       = response["uuid"]
+    meeting.join_url        = response["join_url"]
+    meeting.start_url       = response["start_url"]
+    meeting.status          = "scheduled"
+
+    { success: true }
+  rescue ZoomApiService::ZoomApiError => e
+    Rails.logger.error "Zoom API Error (create): #{e.message}"
+    { success: false, error: e.message }
+  rescue StandardError => e
+    Rails.logger.error "Unexpected Zoom error (create): #{e.message}"
+    { success: false, error: "Unexpected error: #{e.message}" }
+  end
+
+  def update_zoom_meeting(meeting)
+    service = ZoomApiService.new
+    service.update_meeting(meeting.zoom_meeting_id, meeting)
+    { success: true }
+  rescue ZoomApiService::ZoomApiError => e
+    Rails.logger.error "Zoom API Error (update): #{e.message}"
+    { success: false, error: e.message }
+  rescue StandardError => e
+    { success: false, error: e.message }
+  end
+
+  def delete_zoom_meeting(zoom_id)
+    service = ZoomApiService.new
+    service.delete_meeting(zoom_id)
+  rescue ZoomApiService::ZoomApiError => e
+    Rails.logger.error "Zoom API Error (delete): #{e.message}"
+  end
+
+  # ─── HELPERS ─────────────────────────────────────────────────────────────────
 
   def set_meeting
     @meeting = current_user.zoom_meetings.find(params[:id])
