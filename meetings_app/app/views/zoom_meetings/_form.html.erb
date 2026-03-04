@@ -1,0 +1,285 @@
+<%= form_with model: meeting, url: meeting.new_record? ? zoom_meetings_path : zoom_meeting_path(meeting), local: true do |f| %>
+
+  <% if meeting.errors.any? %>
+    <div class="errors">
+      <ul>
+        <% meeting.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Basic Information -->
+  <div class="form-card">
+    <h2>📋 Basic Information</h2>
+    <div class="form-grid">
+      <div class="form-group full">
+        <%= f.label :topic, "Meeting Topic *" %>
+        <%= f.text_field :topic, placeholder: "Enter meeting topic..." %>
+      </div>
+
+      <div class="form-group full">
+        <%= f.label :agenda, "Agenda / Description" %>
+        <%= f.text_area :agenda, placeholder: "What is this meeting about?", rows: 3 %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :meeting_type, "Meeting Type" %>
+        <%= f.select :meeting_type,
+              ZoomMeeting::MEETING_TYPES.map { |label, val| [label, val] },
+              {},
+              { id: "meeting_type_select", onchange: "handleMeetingType(this.value)" } %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :timezone, "Timezone" %>
+        <%= f.select :timezone,
+              ActiveSupport::TimeZone.all.map { |tz| [tz.to_s, tz.name] },
+              { selected: meeting.timezone || "Eastern Time (US & Canada)" } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="form-card" id="schedule-section">
+    <h2>🗓️ Schedule</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :start_time, "Start Date & Time" %>
+        <%= f.datetime_local_field :start_time,
+              value: meeting.start_time&.strftime("%Y-%m-%dT%H:%M") || Time.current.beginning_of_hour.advance(hours: 1).strftime("%Y-%m-%dT%H:%M") %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :duration, "Duration (minutes)" %>
+        <%= f.number_field :duration, min: 1, max: 1440, placeholder: "60" %>
+        <span class="hint">Max 1440 minutes (24 hours)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recurrence (shown for recurring meeting types) -->
+  <div class="form-card" id="recurrence-card" style="display:none;">
+    <h2>🔁 Recurrence Settings</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :recurrence_type, "Recurrence Type" %>
+        <%= f.select :recurrence_type,
+              [["Daily", "daily"], ["Weekly", "weekly"], ["Monthly", "monthly"]],
+              { include_blank: "Select recurrence..." },
+              { id: "recurrence_type_select", onchange: "handleRecurrenceType(this.value)" } %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :repeat_interval, "Repeat Every" %>
+        <%= f.number_field :repeat_interval, min: 1, max: 90, value: meeting.repeat_interval || 1 %>
+        <span class="hint">e.g. every 1 week, every 2 days</span>
+      </div>
+
+      <div class="form-group" id="weekly-days-group" style="display:none;">
+        <%= f.label :weekly_days, "Days of Week" %>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.35rem;">
+          <% [["Sun","1"],["Mon","2"],["Tue","3"],["Wed","4"],["Thu","5"],["Fri","6"],["Sat","7"]].each do |day, val| %>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.8rem;font-weight:500;cursor:pointer;">
+              <input type="checkbox" name="zoom_meeting[weekly_days][]" value="<%= val %>"
+                     <%= "checked" if meeting.weekly_days&.split(",")&.include?(val) %>
+                     style="accent-color:#667eea;">
+              <%= day %>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :end_date_time, "End Date" %>
+        <%= f.date_field :end_date_time %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :end_times, "End After (occurrences)" %>
+        <%= f.number_field :end_times, min: 1, max: 365, value: meeting.end_times || 1 %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="form-card">
+    <h2>🔒 Security</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :password, "Meeting Passcode" %>
+        <%= f.password_field :password, placeholder: "Optional (max 10 chars)", maxlength: 10, autocomplete: "off" %>
+        <span class="hint">Leave blank for no passcode</span>
+      </div>
+
+      <div class="form-group" style="justify-content:flex-end;">
+      </div>
+
+      <div class="form-group full">
+        <div class="toggle-group">
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_waiting_room">Waiting Room</label>
+              <div class="toggle-desc">Participants wait until host admits them</div>
+            </div>
+            <%= f.check_box :waiting_room %>
+          </div>
+
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_require_password">Require Passcode</label>
+              <div class="toggle-desc">Participants must enter passcode to join</div>
+            </div>
+            <%= f.check_box :require_password %>
+          </div>
+
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_join_before_host">Join Before Host</label>
+              <div class="toggle-desc">Allow participants to join before host arrives</div>
+            </div>
+            <%= f.check_box :join_before_host %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video & Audio -->
+  <div class="form-card">
+    <h2>🎥 Video & Audio</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :host_video, "Host Video" %>
+        <%= f.select :host_video, [["On", "on"], ["Off", "off"]] %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :participant_video, "Participant Video" %>
+        <%= f.select :participant_video, [["On", "on"], ["Off", "off"]] %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :audio, "Audio Options" %>
+        <%= f.select :audio, ZoomMeeting::AUDIO_OPTIONS.map { |label, val| [label, val] } %>
+      </div>
+
+      <div class="form-group">
+      </div>
+
+      <div class="form-group full">
+        <div class="toggle-group">
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_mute_upon_entry">Mute Participants on Entry</label>
+              <div class="toggle-desc">Automatically mute participants when they join</div>
+            </div>
+            <%= f.check_box :mute_upon_entry %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recording & Advanced -->
+  <div class="form-card">
+    <h2>⚙️ Recording & Advanced</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :recording_type, "Auto Recording" %>
+        <%= f.select :recording_type, ZoomMeeting::RECORDING_TYPES.map { |label, val| [label, val] } %>
+      </div>
+
+      <div class="form-group">
+      </div>
+
+      <div class="form-group full">
+        <div class="toggle-group">
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_allow_multiple_devices">Allow Multiple Devices</label>
+              <div class="toggle-desc">Allow participants to join from multiple devices</div>
+            </div>
+            <%= f.check_box :allow_multiple_devices %>
+          </div>
+
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_approval_type">Manual Approval</label>
+              <div class="toggle-desc">Manually approve participants before they join</div>
+            </div>
+            <%= f.check_box :approval_type %>
+          </div>
+
+          <div class="toggle-item">
+            <div>
+              <label for="zoom_meeting_registrants_email_notification">Email Notifications</label>
+              <div class="toggle-desc">Send email notifications to registrants</div>
+            </div>
+            <%= f.check_box :registrants_email_notification %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zoom API (Optional) -->
+  <div class="form-card">
+    <h2><span class="zoom-badge">Z</span> Zoom API Details <span style="font-size:0.75rem;color:#9ca3af;font-weight:400;">(optional - fill after creating in Zoom)</span></h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <%= f.label :zoom_meeting_id, "Zoom Meeting ID" %>
+        <%= f.text_field :zoom_meeting_id, placeholder: "e.g. 123 456 7890" %>
+      </div>
+
+      <div class="form-group">
+        <%= f.label :status, "Status" %>
+        <%= f.select :status, ZoomMeeting::STATUSES.map { |s| [s.capitalize, s] } %>
+      </div>
+
+      <div class="form-group full">
+        <%= f.label :join_url, "Join URL" %>
+        <%= f.text_field :join_url, placeholder: "https://zoom.us/j/..." %>
+      </div>
+
+      <div class="form-group full">
+        <%= f.label :start_url, "Start URL (host link)" %>
+        <%= f.text_field :start_url, placeholder: "https://zoom.us/s/..." %>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <a href="<%= zoom_meetings_path %>" class="btn-cancel-form">Cancel</a>
+    <%= f.submit meeting.new_record? ? "📅 Schedule Meeting" : "💾 Save Changes", class: "btn-submit" %>
+  </div>
+
+<% end %>
+
+<script>
+  function handleMeetingType(value) {
+    const scheduleSection = document.getElementById('schedule-section');
+    const recurrenceCard  = document.getElementById('recurrence-card');
+
+    // Hide schedule for instant meetings
+    scheduleSection.style.display = value == '1' ? 'none' : 'block';
+
+    // Show recurrence for types 3 or 8
+    recurrenceCard.style.display = (value == '3' || value == '8') ? 'block' : 'none';
+  }
+
+  function handleRecurrenceType(value) {
+    const weeklyGroup = document.getElementById('weekly-days-group');
+    weeklyGroup.style.display = value === 'weekly' ? 'block' : 'none';
+  }
+
+  // Init on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('meeting_type_select');
+    if (typeSelect) handleMeetingType(typeSelect.value);
+
+    const recurrenceSelect = document.getElementById('recurrence_type_select');
+    if (recurrenceSelect) handleRecurrenceType(recurrenceSelect.value);
+  });
+</script>

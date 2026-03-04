@@ -1,0 +1,9 @@
+<div class="page-header">
+  <div>
+    <h1>✏️ Edit Meeting</h1>
+    <p><%= @meeting.topic %></p>
+  </div>
+  <a href="<%= zoom_meetings_path %>" class="btn-secondary">← Back to Meetings</a>
+</div>
+
+<%= render "form", meeting: @meeting %>

@@ -1,0 +1,113 @@
+<div class="page-header">
+  <div>
+    <h1>📹 Zoom Meetings</h1>
+    <p>Manage and schedule your Zoom meetings</p>
+  </div>
+  <a href="<%= new_zoom_meeting_path %>" class="btn-primary">
+    ＋ Add Zoom Meeting
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-box">
+    <div class="num"><%= @total %></div>
+    <div class="label">Total Meetings</div>
+  </div>
+  <div class="stat-box">
+    <div class="num"><%= @upcoming_meetings.count %></div>
+    <div class="label">Upcoming</div>
+  </div>
+  <div class="stat-box">
+    <div class="num"><%= @past_meetings.count %></div>
+    <div class="label">Past</div>
+  </div>
+  <div class="stat-box">
+    <div class="num"><%= current_user.zoom_meetings.where(status: "cancelled").count %></div>
+    <div class="label">Cancelled</div>
+  </div>
+</div>
+
+<!-- Upcoming Meetings -->
+<div class="card">
+  <h2>🗓️ Upcoming Meetings</h2>
+
+  <% if @upcoming_meetings.any? %>
+    <% @upcoming_meetings.each do |meeting| %>
+      <div class="meeting-item">
+        <div class="meeting-left">
+          <div class="meeting-icon">📹</div>
+          <div class="meeting-info">
+            <h3><%= meeting.topic %></h3>
+            <div class="meeting-meta">
+              <span>📅 <%= meeting.start_time&.strftime("%b %d, %Y %I:%M %p") %></span>
+              <span>⏱ <%= meeting.duration_formatted %></span>
+              <span>🌐 <%= meeting.timezone %></span>
+              <span>
+                <span class="badge" style="background: <%= meeting.status_badge_color %>20; color: <%= meeting.status_badge_color %>;">
+                  <%= meeting.status %>
+                </span>
+              </span>
+              <% if meeting.recurring? %>
+                <span class="badge" style="background:#f3f4f6;color:#6b7280;">🔁 Recurring</span>
+              <% end %>
+            </div>
+            <% if meeting.agenda.present? %>
+              <p style="font-size:0.8rem;color:#9ca3af;margin-top:0.4rem;"><%= truncate(meeting.agenda, length: 100) %></p>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="meeting-actions">
+          <% if meeting.join_url.present? %>
+            <a href="<%= meeting.join_url %>" target="_blank" class="btn-primary" style="font-size:0.8rem;padding:0.4rem 0.8rem;">
+              Join
+            </a>
+          <% end %>
+          <a href="<%= edit_zoom_meeting_path(meeting) %>" class="btn-secondary">✏️ Edit</a>
+          <%= button_to "🗑️", zoom_meeting_path(meeting), method: :delete,
+              data: { confirm: "Delete this meeting?" },
+              class: "btn-danger" %>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No upcoming meetings</h3>
+      <p>Schedule your first Zoom meeting to get started</p>
+      <a href="<%= new_zoom_meeting_path %>" class="btn-primary">＋ Add Zoom Meeting</a>
+    </div>
+  <% end %>
+</div>
+
+<!-- Past Meetings -->
+<% if @past_meetings.any? %>
+  <div class="card">
+    <h2>🕐 Past Meetings</h2>
+    <% @past_meetings.first(5).each do |meeting| %>
+      <div class="meeting-item">
+        <div class="meeting-left">
+          <div class="meeting-icon" style="background: linear-gradient(135deg, #9ca3af, #6b7280);">📹</div>
+          <div class="meeting-info">
+            <h3 style="color:#6b7280;"><%= meeting.topic %></h3>
+            <div class="meeting-meta">
+              <span>📅 <%= meeting.start_time&.strftime("%b %d, %Y %I:%M %p") %></span>
+              <span>⏱ <%= meeting.duration_formatted %></span>
+              <span>
+                <span class="badge" style="background: <%= meeting.status_badge_color %>20; color: <%= meeting.status_badge_color %>;">
+                  <%= meeting.status %>
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="meeting-actions">
+          <%= button_to "🗑️", zoom_meeting_path(meeting), method: :delete,
+              data: { confirm: "Delete this meeting?" },
+              class: "btn-danger" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

@@ -11,4 +11,11 @@ Rails.application.routes.draw do
   get "/profile", to: "users#show", as: :user
 
   get "/dashboard", to: "dashboard#index", as: :dashboard
+
+  # Zoom Meetings
+  resources :zoom_meetings do
+    member do
+      patch :cancel
+    end
+  end
 end

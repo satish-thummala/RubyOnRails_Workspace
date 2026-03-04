@@ -1,6 +1,8 @@
 class User < ApplicationRecord
   has_secure_password
 
+  has_many :zoom_meetings, dependent: :destroy
+
   validates :name, presence: true, length: { minimum: 2, maximum: 50 }
   validates :email, presence: true,
                     uniqueness: { case_sensitive: false },
