@@ -1,4 +1,4 @@
-# Rails Login App
+# Meetings App
 
 A simple Ruby on Rails application with a complete authentication system built from scratch using sessions and bcrypt (no Devise).
 
@@ -65,12 +65,12 @@ config/
 
 ## Routes
 
-| Method | Path        | Action                  |
-|--------|-------------|-------------------------|
-| GET    | /login      | Show login form         |
-| POST   | /login      | Authenticate user       |
-| DELETE | /logout     | Log out                 |
-| GET    | /signup     | Show registration form  |
-| POST   | /signup     | Create user account     |
-| GET    | /profile    | Show user profile       |
-| GET    | /dashboard  | Protected dashboard     |
+| Method | Path       | Action                 |
+| ------ | ---------- | ---------------------- |
+| GET    | /login     | Show login form        |
+| POST   | /login     | Authenticate user      |
+| DELETE | /logout    | Log out                |
+| GET    | /signup    | Show registration form |
+| POST   | /signup    | Create user account    |
+| GET    | /profile   | Show user profile      |
+| GET    | /dashboard | Protected dashboard    |
