@@ -1,6 +1,6 @@
 class UsersController < ApplicationController
   before_action :require_guest, only: [:new, :create]
-  before_action :require_login, only: [:show, :edit, :update]
+  before_action :require_login, only: [:show]
 
   def new
     @user = User.new

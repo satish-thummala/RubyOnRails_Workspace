@@ -8,7 +8,7 @@ Rails.application.routes.draw do
   get  "/signup", to: "users#new",    as: :signup
   post "/signup", to: "users#create"
 
-  get "/profile", to: "users#show", as: :user
+  get "/profile", to: "users#show", as: :profile
 
   get "/dashboard", to: "dashboard#index", as: :dashboard
 
