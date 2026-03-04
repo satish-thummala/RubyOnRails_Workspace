@@ -1,38 +1,100 @@
-<div class="container wide" style="margin: 2rem auto;">
-  <div class="welcome-banner">
-    <h1>👋 Hello, <%= current_user.name %>!</h1>
-    <p>You're successfully logged in. Welcome to your dashboard.</p>
-  </div>
+<div style="padding: 0.5rem 0;">
 
-  <div class="dashboard-grid">
-    <div class="stat-card">
-      <div class="icon">🔐</div>
-      <h3>Auth Status</h3>
-      <p style="color:#10b981;">Active</p>
+  <!-- Welcome Banner -->
+  <div style="background: #667eea; border-radius: 16px; padding: 2rem 2.5rem; color: white; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <div style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 0.4rem;">Welcome back</div>
+      <h1 style="font-size: 2rem; font-weight: 800; color: white; margin-bottom: 0.4rem;">👋 <%= current_user.name %></h1>
+      <p style="color: rgba(255,255,255,0.8); font-size: 0.95rem;"><%= Time.current.strftime("%A, %B %d, %Y") %></p>
     </div>
-
-    <div class="stat-card">
-      <div class="icon">📅</div>
-      <h3>Member Since</h3>
-      <p style="font-size:1rem;"><%= current_user.created_at.strftime("%b %Y") %></p>
-    </div>
-
-    <div class="stat-card">
-      <div class="icon">✉️</div>
-      <h3>Email</h3>
-      <p style="font-size:0.9rem;word-break:break-all;"><%= current_user.email %></p>
+    <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 1rem 1.5rem; text-align: center; backdrop-filter: blur(10px);">
+      <div style="font-size: 2rem; margin-bottom: 0.25rem;">📹</div>
+      <div style="font-size: 1.5rem; font-weight: 800; color: white;"><%= current_user.zoom_meetings.count %></div>
+      <div style="font-size: 0.8rem; opacity: 0.8;">Total Meetings</div>
     </div>
   </div>
 
-  <div class="card" style="margin-top:2rem;">
-    <h2 style="margin-bottom:0.75rem;">🛠 What's in this project?</h2>
-    <ul style="list-style:none;padding:0;line-height:2;">
-      <li>✅ User registration with validations</li>
-      <li>✅ Secure login / logout with <code>bcrypt</code></li>
-      <li>✅ Session-based authentication</li>
-      <li>✅ Protected routes via <code>before_action</code></li>
-      <li>✅ Flash messages for feedback</li>
-      <li>✅ Profile page with user info</li>
-    </ul>
+  <!-- Stats Row -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+
+    <div style="background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: #ede9fe; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">🗓️</div>
+      <div>
+        <div style="font-size: 1.5rem; font-weight: 800; color: #667eea;"><%= current_user.zoom_meetings.upcoming.count %></div>
+        <div style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Upcoming</div>
+      </div>
+    </div>
+
+    <div style="background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: #d1fae5; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">✅</div>
+      <div>
+        <div style="font-size: 1.5rem; font-weight: 800; color: #10b981;"><%= current_user.zoom_meetings.past.count %></div>
+        <div style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Completed</div>
+      </div>
+    </div>
+
+    <div style="background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">👤</div>
+      <div>
+        <div style="font-size: 1rem; font-weight: 700; color: #1a1a2e; word-break: break-all;"><%= current_user.email %></div>
+        <div style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Account Email</div>
+      </div>
+    </div>
+
+    <div style="background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 44px; height: 44px; border-radius: 10px; background: #fee2e2; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">📆</div>
+      <div>
+        <div style="font-size: 1rem; font-weight: 700; color: #1a1a2e;"><%= current_user.created_at.strftime("%b %d, %Y") %></div>
+        <div style="font-size: 0.8rem; color: #6b7280; font-weight: 500;">Member Since</div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- Quick Actions -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06); margin-bottom: 2rem;">
+    <h2 style="font-size: 1rem; font-weight: 700; color: #374151; margin-bottom: 1.25rem;">⚡ Quick Actions</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+      <a href="<%= new_zoom_meeting_path %>" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.25rem; background: #667eea; color: white; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: opacity 0.2s;">
+        ＋ New Zoom Meeting
+      </a>
+      <a href="<%= zoom_meetings_path %>" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.25rem; background: #f3f4f6; color: #374151; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; border: 1px solid #e5e7eb;">
+        📋 View All Meetings
+      </a>
+      <a href="/profile" style="display: flex; align-items: center; gap: 0.6rem; padding: 0.75rem 1.25rem; background: #f3f4f6; color: #374151; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; border: 1px solid #e5e7eb;">
+        👤 My Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- Upcoming Meetings Preview -->
+  <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 8px rgba(0,0,0,0.06);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1rem; font-weight: 700; color: #374151;">🗓️ Upcoming Meetings</h2>
+      <a href="<%= zoom_meetings_path %>" style="font-size: 0.8rem; color: #667eea; text-decoration: none; font-weight: 600;">View all →</a>
+    </div>
+
+    <% upcoming = current_user.zoom_meetings.upcoming.first(3) %>
+    <% if upcoming.any? %>
+      <% upcoming.each do |meeting| %>
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid #f3f4f6;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: #667eea; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">📹</div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; font-size: 0.9rem; color: #1a1a2e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= meeting.topic %></div>
+            <div style="font-size: 0.78rem; color: #9ca3af; margin-top: 0.15rem;">📅 <%= meeting.start_time&.strftime("%b %d, %Y at %I:%M %p") %> &nbsp;·&nbsp; ⏱ <%= meeting.duration_formatted %></div>
+          </div>
+          <% if meeting.join_url.present? %>
+            <a href="<%= meeting.join_url %>" target="_blank" style="padding: 0.4rem 0.9rem; background: #667eea; color: white; border-radius: 6px; font-size: 0.78rem; font-weight: 600; text-decoration: none; flex-shrink: 0;">Join</a>
+          <% end %>
+        </div>
+      <% end %>
+    <% else %>
+      <div style="text-align: center; padding: 2rem; color: #9ca3af;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📭</div>
+        <p style="font-size: 0.9rem;">No upcoming meetings</p>
+        <a href="<%= new_zoom_meeting_path %>" style="display: inline-block; margin-top: 1rem; padding: 0.6rem 1.25rem; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-size: 0.85rem; font-weight: 600;">＋ Schedule a Meeting</a>
+      </div>
+    <% end %>
+  </div>
+
 </div>
